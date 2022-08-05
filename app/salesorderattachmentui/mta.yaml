@@ -1,0 +1,94 @@
+_schema-version: "3.2"
+ID: salesorderattachmentui
+description: Manage sales order with attachment
+version: 0.0.1
+modules:
+- name: salesorderattachmentui-destination-content
+  type: com.sap.application.content
+  requires:
+  - name: salesorderattachmentui-destination-service
+    parameters:
+      content-target: true
+  - name: salesorderattachmentui-repo-host
+    parameters:
+      service-key:
+        name: salesorderattachmentui-repo-host-key
+  - name: salesorderattachmentui-uaa
+    parameters:
+      service-key:
+        name: salesorderattachmentui-uaa-key
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: salesorderattachmentui_html_repo_host
+          ServiceInstanceName: salesorderattachmentui-html5-srv
+          ServiceKeyName: salesorderattachmentui-repo-host-key
+          sap.cloud.service: salesorderattachmentui
+        - Authentication: OAuth2UserTokenExchange
+          Name: salesorderattachmentui_uaa
+          ServiceInstanceName: salesorderattachmentui-xsuaa-srv
+          ServiceKeyName: salesorderattachmentui-uaa-key
+          sap.cloud.service: salesorderattachmentui
+        existing_destinations_policy: ignore
+  build-parameters:
+    no-source: true
+- name: salesorderattachmentui-app-content
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: salesorderattachmentui-repo-host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - salesorderattachmentui.zip
+      name: salesorderattachmentui
+      target-path: resources/
+- name: salesorderattachmentui
+  type: html5
+  path: .
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: salesorderattachmentui-destination-service
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+      version: 1.0.0
+    service: destination
+    service-name: salesorderattachmentui-destination-service
+    service-plan: lite
+- name: salesorderattachmentui-uaa
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json
+    service: xsuaa
+    service-name: salesorderattachmentui-xsuaa-srv
+    service-plan: application
+- name: salesorderattachmentui-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: salesorderattachmentui-html5-srv
+    service-plan: app-host
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true

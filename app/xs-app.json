@@ -1,0 +1,25 @@
+{
+    "authenticationMethod": "route",
+    "routes": [
+        {
+            "source": "^/v2/sales-(.*)$",
+            "destination": "srv-api",
+            "authenticationType": "xsuaa",
+            "csrfProtection": false
+        },
+        {
+            "source": "^/api/(.*)$",
+            "target": "$1",
+            "authenticationType": "xsuaa",
+            "service": "com.sap.ecm.reuse",
+            "endpoint": "ecmservice"
+        },
+        {
+            "source": "(.*)",
+            "target": "/salesorderattachmentui/$1",
+            "service": "html5-apps-repo-rt",
+            "authenticationType": "xsuaa"
+        }
+    ],
+    "welcomeFile": "/index.html"
+}
